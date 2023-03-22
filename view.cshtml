@@ -1,0 +1,235 @@
+@using EleWise.ELMA.Model.Views
+@using EleWise.ELMA.Web.Mvc.Views.ViewItem
+<!-- История разработки процесса -->
+@foreach(var historyItem in Model){
+	<div class="commit-item">
+	<h1>Версия: @historyItem.ProcessVersion.VersionNumber - "@historyItem.ProcessVersion.Name"</h1>
+	<div id="designer_element_@historyItem.ProcessVersion.Id" onclick="showDesignerInfo(this.id)" class="separator-blue">Информация о версии из дизайнера ELMA [Нажмите что-бы развернуть]</div>
+	<div class="panelitem" id="container_designer_element_@historyItem.ProcessVersion.Id" hidden>
+		<b>Автор коммита в дизайнере ELMA: </b><a href="javascript:showUserInfo('@historyItem.ProcessVersion.CreationAuthor.Id')">@historyItem.ProcessVersion.CreationAuthor.FullName - @historyItem.ProcessVersion.CreationDate</a>
+		@if(!String.IsNullOrEmpty(historyItem.ProcessVersion.Description)){<br><b>Комментарий к коммиту в дизайнере ELMA: </b><div class="commit-comment">@historyItem.ProcessVersion.Description</div>}
+		
+		<div id="sourcecode_element_@historyItem.ProcessVersion.Id" onclick="showSourceCode(this.id)" class="separator-blue">Исходный код [Нажмите что-бы развернуть]</div>
+		<div id="container_sourcecode_element_@historyItem.ProcessVersion.Id" class="panelitem" hidden>
+			@{
+			var processVersion = (EleWise.ELMA.Workflow.Models.WorkflowProcess)historyItem.ProcessVersion;
+			var subprocesses = (ISet<EleWise.ELMA.Workflow.Models.WorkflowProcess>)historyItem.ProcessVersion.SubProcesses;
+			
+			}
+			<h1>Модуль скриптов процесса - "@processVersion.Name" (@processVersion.ScriptModule.AssemblyName)</h1>
+			<textarea disabled class="code-preview">@processVersion.ScriptModule.SourceCode</textarea>
+			@foreach(var subprocess in subprocesses){
+				<h1>Модуль скриптов подпроцесса - "@subprocess.Name" (@subprocess.ScriptModule.AssemblyName)</h1>
+				<textarea disabled class="code-preview">@subprocess.ScriptModule.SourceCode</textarea>	
+			}
+		</div>
+		
+	</div>
+	<br>
+	<div id="map_element_@historyItem.ProcessVersion.Id" onclick="showProcessVersionMap(this.id)" class="separator-blue">Карта процесса [Нажмите что-бы развернуть]</div>
+	<div class="panelitem" id="iframe_map_element_@historyItem.ProcessVersion.Id" hidden>
+		<h1>Карта процесса: @historyItem.ProcessVersion.Name</h1>
+		<iframe  style="width:100%; height: 600px;" src="http://nr-db-06:8001/Workflow/WorkflowProcess/ImageMap/@historyItem.ProcessVersion.Id"></iframe>
+		@foreach(var subprocess in historyItem.ProcessVersion.SubProcesses){
+		<h1>Карта внутреннего подпроцесса: @subprocess.Name</h1>
+		<iframe  style="width:100%; height: 600px;" src="http://nr-db-06:8001/Workflow/WorkflowProcess/ImageMap/@subprocess.Id"></iframe>
+		}
+	</div>
+	
+	
+	@if(historyItem.DevelopmentDictionaryItem != null){
+	<br>
+	<div id="request_element_@historyItem.ProcessVersion.Id" onclick="showRequestInfo(this.id)" class="separator-blue">Заявка на процесс [Нажмите что-бы развернуть]</div>
+	<div class="panelitem" id="container_request_element_@historyItem.ProcessVersion.Id" hidden>
+		<a href="http://nr-db-06:8001/Processes/WorkflowInstance/Info/@historyItem.DevelopmentDictionaryItem.DevelopmentProcess.Id"><h1>Заявка на разработку/доработку автоматизированного процесса от @historyItem.DevelopmentDictionaryItem.DevelopmentRequestCreated </h1></a>
+		<b>Инициатор заявки: </b><a href="javascript:showUserInfo('@historyItem.DevelopmentDictionaryItem.DevelopmentIniciator.Id')">@historyItem.DevelopmentDictionaryItem.DevelopmentIniciator.FullName</a><br>
+		<b>Описание требований и пожеланий от пользователя: </b><div class="commit-comment">@historyItem.DevelopmentDictionaryItem.UserTechTask </div>
+		<b>Приложения к описанию процесса пользователем:</b>
+		@foreach(var attachment in historyItem.DevelopmentDictionaryItem.DevTechDescription){
+			<button class="t-button-noborder t-button-nofill circle t-button-icon  small t-button BinaryFilePreviewSelectorButton file-attachment-image" fileid="@attachment.File.Uid" onmouseup="elma.BinaryFilePreviewSelector.Click(this)" nopreview="False"><i class="svg-element t-button-image" data-source="/Content/IconPack/attachment.svg"><svg x="0" y="0" width="1024" height="1024" overflow="hidden" viewBox="0, 0, 1024, 1024" preserveAspectRatio="xMidYMid" font-size="0" color="#B1B1B1" xml:space="default" style="color:currentColor;fill:none;" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:xml="http://www.w3.org/XML/1998/namespace" version="1.1"><path d="M803.628 475.373 L490.042 789.495 C475.946 803.621 459.209 814.826 440.788 822.472 C422.368 830.117 402.624 834.052 382.684 834.052 C362.745 834.052 343.001 830.117 324.58 822.472 C306.16 814.826 289.423 803.621 275.326 789.495 C261.224 775.374 250.038 758.609 242.406 740.157 C234.774 721.704 230.845 701.927 230.845 681.953 C230.845 661.98 234.774 642.202 242.406 623.75 C250.038 605.298 261.224 588.532 275.326 574.411 L635.85 216.273 C652.612 199.482 675.346 190.05 699.051 190.05 C722.756 190.05 745.49 199.482 762.253 216.273 C779.014 233.064 788.431 255.837 788.431 279.582 C788.431 303.328 779.014 326.101 762.253 342.892 L449.097 653.632 C444.04 658.696 437.182 661.542 430.032 661.542 C422.881 661.542 416.024 658.696 410.967 653.632 C405.911 648.567 403.071 641.697 403.071 634.535 C403.071 627.372 405.911 620.503 410.967 615.437 L677.195 351.735 C683.937 344.981 687.724 335.821 687.724 326.27 C687.724 316.719 683.937 307.559 677.195 300.805 C670.453 294.052 661.308 290.258 651.774 290.258 C642.239 290.258 633.095 294.052 626.352 300.805 L360.144 564.508 C341.605 583.081 331.19 608.27 331.19 634.535 C331.19 660.8 341.605 685.989 360.144 704.562 C378.685 723.133 403.832 733.566 430.052 733.566 C456.272 733.566 481.418 723.133 499.959 704.562 L813.145 393.811 C828.123 378.809 840.004 360.998 848.109 341.396 C856.215 321.794 860.387 300.784 860.387 279.567 C860.387 258.35 856.215 237.34 848.109 217.738 C840.004 198.136 828.123 180.325 813.145 165.323 C798.168 150.32 780.388 138.419 760.819 130.299 C741.251 122.179 720.277 118 699.096 118 C677.915 118 656.941 122.179 637.373 130.299 C617.804 138.419 600.024 150.32 585.047 165.323 L224.523 523.462 C137.159 610.976 137.159 752.861 224.523 840.365 C311.888 927.879 453.531 927.879 540.885 840.365 L854.471 526.243 C861.212 519.489 865 510.329 865 500.778 C865 491.227 861.212 482.067 854.471 475.313 C847.72 468.568 838.572 464.784 829.037 464.796 C819.502 464.807 810.362 468.612 803.628 475.373 z" xml:space="default" style="fill:currentColor;"></path></svg></i></button><a href="/SDK.Action/BinaryFiles/Download/@attachment.File.Uid">@attachment.File.Name</a>
+		}
+		<!-- тз юзера, хз пока как рендерить historyItem.DevelopmentDictionaryItem.UserTechTaskAttachment  -->
+		<div>
+			<b style="display:inline-block;">Пожелание пользователя по срокам реализации:</b>
+			<p style="display:inline-block;">@historyItem.DevelopmentDictionaryItem.DevelopmentWantTime</p>
+		</div>
+		<div>
+		<b>Первичное ТЗ:</b>
+		@foreach(var attachment in historyItem.DevelopmentDictionaryItem.DevTechDescription){
+			<button class="t-button-noborder t-button-nofill circle t-button-icon  small t-button BinaryFilePreviewSelectorButton file-attachment-image" fileid="@attachment.File.Uid" onmouseup="elma.BinaryFilePreviewSelector.Click(this)" nopreview="False"><i class="svg-element t-button-image" data-source="/Content/IconPack/attachment.svg"><svg x="0" y="0" width="1024" height="1024" overflow="hidden" viewBox="0, 0, 1024, 1024" preserveAspectRatio="xMidYMid" font-size="0" color="#B1B1B1" xml:space="default" style="color:currentColor;fill:none;" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:xml="http://www.w3.org/XML/1998/namespace" version="1.1"><path d="M803.628 475.373 L490.042 789.495 C475.946 803.621 459.209 814.826 440.788 822.472 C422.368 830.117 402.624 834.052 382.684 834.052 C362.745 834.052 343.001 830.117 324.58 822.472 C306.16 814.826 289.423 803.621 275.326 789.495 C261.224 775.374 250.038 758.609 242.406 740.157 C234.774 721.704 230.845 701.927 230.845 681.953 C230.845 661.98 234.774 642.202 242.406 623.75 C250.038 605.298 261.224 588.532 275.326 574.411 L635.85 216.273 C652.612 199.482 675.346 190.05 699.051 190.05 C722.756 190.05 745.49 199.482 762.253 216.273 C779.014 233.064 788.431 255.837 788.431 279.582 C788.431 303.328 779.014 326.101 762.253 342.892 L449.097 653.632 C444.04 658.696 437.182 661.542 430.032 661.542 C422.881 661.542 416.024 658.696 410.967 653.632 C405.911 648.567 403.071 641.697 403.071 634.535 C403.071 627.372 405.911 620.503 410.967 615.437 L677.195 351.735 C683.937 344.981 687.724 335.821 687.724 326.27 C687.724 316.719 683.937 307.559 677.195 300.805 C670.453 294.052 661.308 290.258 651.774 290.258 C642.239 290.258 633.095 294.052 626.352 300.805 L360.144 564.508 C341.605 583.081 331.19 608.27 331.19 634.535 C331.19 660.8 341.605 685.989 360.144 704.562 C378.685 723.133 403.832 733.566 430.052 733.566 C456.272 733.566 481.418 723.133 499.959 704.562 L813.145 393.811 C828.123 378.809 840.004 360.998 848.109 341.396 C856.215 321.794 860.387 300.784 860.387 279.567 C860.387 258.35 856.215 237.34 848.109 217.738 C840.004 198.136 828.123 180.325 813.145 165.323 C798.168 150.32 780.388 138.419 760.819 130.299 C741.251 122.179 720.277 118 699.096 118 C677.915 118 656.941 122.179 637.373 130.299 C617.804 138.419 600.024 150.32 585.047 165.323 L224.523 523.462 C137.159 610.976 137.159 752.861 224.523 840.365 C311.888 927.879 453.531 927.879 540.885 840.365 L854.471 526.243 C861.212 519.489 865 510.329 865 500.778 C865 491.227 861.212 482.067 854.471 475.313 C847.72 468.568 838.572 464.784 829.037 464.796 C819.502 464.807 810.362 468.612 803.628 475.373 z" xml:space="default" style="fill:currentColor;"></path></svg></i></button><a href="/SDK.Action/BinaryFiles/Download/@attachment.File.Uid">@attachment.File.Name</a>
+		}
+		</div>
+		<div class="panelitem">
+			<h2>Разработка в ОИС:</h2>
+			<div>
+				<b style="display:inline-block;">Ответственный исполнитель ОИС: </b>
+				@if(historyItem.DevelopmentDictionaryItem.DevelopmentManager != null){
+				<a style="display:inline-block;" href="javascript:showUserInfo('@historyItem.DevelopmentDictionaryItem.DevelopmentManager.Id')">@historyItem.DevelopmentDictionaryItem.DevelopmentManager.FullName</a>
+				}
+			</div>
+			<div>
+				<b style="display:inline-block;">Способ реализации: </b>
+				@if(historyItem.DevelopmentDictionaryItem.DeveloperMethod != null){
+					<p style="display:inline-block;">@historyItem.DevelopmentDictionaryItem.DeveloperMethod.Value</p>
+				}
+			</div>
+			<div>
+				<b style="display:inline-block;">Срок выполнения в ОИС: </b>
+				@if(historyItem.DevelopmentDictionaryItem.DevelopmentOISTime != null){
+					<p style="display:inline-block;">@historyItem.DevelopmentDictionaryItem.DevelopmentOISTime</p>
+				}
+			</div>
+			<!-- файл с инструкций historyItem.DevelopmentDictionaryItem.Instruction  -->
+			<div>
+				<b style="display:inline-block;">Дата внедрения: </b>
+				@if(historyItem.DevelopmentDictionaryItem.DevelopmentIntegrationDate != null){
+					<p style="display:inline-block;">@historyItem.DevelopmentDictionaryItem.DevelopmentIntegrationDate</p>
+				}
+			</div>
+			<hr>
+			<h2>Спринты разработки:</h2>
+			<table class="list">
+				<tr>
+					<th>№ спринта</th>
+					<th>Файл ТЗ</th>
+					<th>Результат спринта</th>
+					<th>Вложение к результату</th>
+					<th>Кол-во замечаний по текущему спринту</th>
+				</tr>
+				@{
+				long noteCount = 0;
+				}
+				@foreach(var sprintItem in historyItem.DevelopmentDictionaryItem.TestNote){
+				<tr>
+					<td>@sprintItem.DevelopmentRound</td>
+					<td>
+						@foreach(var attachment in sprintItem.NoteFile){
+							<button class="t-button-noborder t-button-nofill circle t-button-icon  small t-button BinaryFilePreviewSelectorButton file-attachment-image" fileid="@attachment.File.Uid" onmouseup="elma.BinaryFilePreviewSelector.Click(this)" nopreview="False"><i class="svg-element t-button-image" data-source="/Content/IconPack/attachment.svg"><svg x="0" y="0" width="1024" height="1024" overflow="hidden" viewBox="0, 0, 1024, 1024" preserveAspectRatio="xMidYMid" font-size="0" color="#B1B1B1" xml:space="default" style="color:currentColor;fill:none;" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:xml="http://www.w3.org/XML/1998/namespace" version="1.1"><path d="M803.628 475.373 L490.042 789.495 C475.946 803.621 459.209 814.826 440.788 822.472 C422.368 830.117 402.624 834.052 382.684 834.052 C362.745 834.052 343.001 830.117 324.58 822.472 C306.16 814.826 289.423 803.621 275.326 789.495 C261.224 775.374 250.038 758.609 242.406 740.157 C234.774 721.704 230.845 701.927 230.845 681.953 C230.845 661.98 234.774 642.202 242.406 623.75 C250.038 605.298 261.224 588.532 275.326 574.411 L635.85 216.273 C652.612 199.482 675.346 190.05 699.051 190.05 C722.756 190.05 745.49 199.482 762.253 216.273 C779.014 233.064 788.431 255.837 788.431 279.582 C788.431 303.328 779.014 326.101 762.253 342.892 L449.097 653.632 C444.04 658.696 437.182 661.542 430.032 661.542 C422.881 661.542 416.024 658.696 410.967 653.632 C405.911 648.567 403.071 641.697 403.071 634.535 C403.071 627.372 405.911 620.503 410.967 615.437 L677.195 351.735 C683.937 344.981 687.724 335.821 687.724 326.27 C687.724 316.719 683.937 307.559 677.195 300.805 C670.453 294.052 661.308 290.258 651.774 290.258 C642.239 290.258 633.095 294.052 626.352 300.805 L360.144 564.508 C341.605 583.081 331.19 608.27 331.19 634.535 C331.19 660.8 341.605 685.989 360.144 704.562 C378.685 723.133 403.832 733.566 430.052 733.566 C456.272 733.566 481.418 723.133 499.959 704.562 L813.145 393.811 C828.123 378.809 840.004 360.998 848.109 341.396 C856.215 321.794 860.387 300.784 860.387 279.567 C860.387 258.35 856.215 237.34 848.109 217.738 C840.004 198.136 828.123 180.325 813.145 165.323 C798.168 150.32 780.388 138.419 760.819 130.299 C741.251 122.179 720.277 118 699.096 118 C677.915 118 656.941 122.179 637.373 130.299 C617.804 138.419 600.024 150.32 585.047 165.323 L224.523 523.462 C137.159 610.976 137.159 752.861 224.523 840.365 C311.888 927.879 453.531 927.879 540.885 840.365 L854.471 526.243 C861.212 519.489 865 510.329 865 500.778 C865 491.227 861.212 482.067 854.471 475.313 C847.72 468.568 838.572 464.784 829.037 464.796 C819.502 464.807 810.362 468.612 803.628 475.373 z" xml:space="default" style="fill:currentColor;"></path></svg></i></button><a href="/SDK.Action/BinaryFiles/Download/@attachment.File.Uid">@attachment.File.Name</a>
+							<br>
+						}
+					</td>
+					<td>@sprintItem.Result</td>
+					<td>
+						@foreach(var attachment in sprintItem.ResultAttachment){
+							<button class="t-button-noborder t-button-nofill circle t-button-icon  small t-button BinaryFilePreviewSelectorButton file-attachment-image" fileid="@attachment.File.Uid" onmouseup="elma.BinaryFilePreviewSelector.Click(this)" nopreview="False"><i class="svg-element t-button-image" data-source="/Content/IconPack/attachment.svg"><svg x="0" y="0" width="1024" height="1024" overflow="hidden" viewBox="0, 0, 1024, 1024" preserveAspectRatio="xMidYMid" font-size="0" color="#B1B1B1" xml:space="default" style="color:currentColor;fill:none;" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:xml="http://www.w3.org/XML/1998/namespace" version="1.1"><path d="M803.628 475.373 L490.042 789.495 C475.946 803.621 459.209 814.826 440.788 822.472 C422.368 830.117 402.624 834.052 382.684 834.052 C362.745 834.052 343.001 830.117 324.58 822.472 C306.16 814.826 289.423 803.621 275.326 789.495 C261.224 775.374 250.038 758.609 242.406 740.157 C234.774 721.704 230.845 701.927 230.845 681.953 C230.845 661.98 234.774 642.202 242.406 623.75 C250.038 605.298 261.224 588.532 275.326 574.411 L635.85 216.273 C652.612 199.482 675.346 190.05 699.051 190.05 C722.756 190.05 745.49 199.482 762.253 216.273 C779.014 233.064 788.431 255.837 788.431 279.582 C788.431 303.328 779.014 326.101 762.253 342.892 L449.097 653.632 C444.04 658.696 437.182 661.542 430.032 661.542 C422.881 661.542 416.024 658.696 410.967 653.632 C405.911 648.567 403.071 641.697 403.071 634.535 C403.071 627.372 405.911 620.503 410.967 615.437 L677.195 351.735 C683.937 344.981 687.724 335.821 687.724 326.27 C687.724 316.719 683.937 307.559 677.195 300.805 C670.453 294.052 661.308 290.258 651.774 290.258 C642.239 290.258 633.095 294.052 626.352 300.805 L360.144 564.508 C341.605 583.081 331.19 608.27 331.19 634.535 C331.19 660.8 341.605 685.989 360.144 704.562 C378.685 723.133 403.832 733.566 430.052 733.566 C456.272 733.566 481.418 723.133 499.959 704.562 L813.145 393.811 C828.123 378.809 840.004 360.998 848.109 341.396 C856.215 321.794 860.387 300.784 860.387 279.567 C860.387 258.35 856.215 237.34 848.109 217.738 C840.004 198.136 828.123 180.325 813.145 165.323 C798.168 150.32 780.388 138.419 760.819 130.299 C741.251 122.179 720.277 118 699.096 118 C677.915 118 656.941 122.179 637.373 130.299 C617.804 138.419 600.024 150.32 585.047 165.323 L224.523 523.462 C137.159 610.976 137.159 752.861 224.523 840.365 C311.888 927.879 453.531 927.879 540.885 840.365 L854.471 526.243 C861.212 519.489 865 510.329 865 500.778 C865 491.227 861.212 482.067 854.471 475.313 C847.72 468.568 838.572 464.784 829.037 464.796 C819.502 464.807 810.362 468.612 803.628 475.373 z" xml:space="default" style="fill:currentColor;"></path></svg></i></button><a href="/SDK.Action/BinaryFiles/Download/@attachment.File.Uid">@attachment.File.Name</a>
+							<br>
+						}
+					</td>
+					<td>@sprintItem.FunctionNoteCount</td>
+					@{
+						noteCount=noteCount+sprintItem.FunctionNoteCount;
+					}
+				</tr>
+				}
+				<tr>
+					<td></td>
+					<td></td>
+					<td></td>
+					<td></td>
+					<td style="background-color: #666666; color: white;">Общее кол-во замечаний: @noteCount</td>
+				</tr>
+		</table>
+		</div>
+	</div>
+	
+	}
+	<hr>
+	
+	</div>
+}
+<script>
+	function showProcessVersionMap(mapid){
+		var elementMap = document.getElementById('iframe_'+mapid);
+		var initElement = document.getElementById(mapid);
+		if(elementMap.hidden == true){
+			elementMap.hidden = false;
+			initElement.innerHTML = 'Карта процесса [Нажмите что-бы свернуть]';
+		} else if(elementMap.hidden == false){
+			elementMap.hidden = true;
+			initElement.innerHTML = 'Карта процесса [Нажмите что-бы развернуть]';
+		}
+	}
+	function showDesignerInfo(elementid){
+		var container = document.getElementById('container_'+elementid);
+		var buttonPanel = document.getElementById(elementid);
+		if(container.hidden == true){
+			container.hidden = false;
+			buttonPanel.innerHTML = 'Информация о версии из дизайнера ELMA [Нажмите что-бы свернуть]';
+		} else if (container.hidden == false){
+			container.hidden = true
+			buttonPanel.innerHTML = 'Информация о версии из дизайнера ELMA [Нажмите что-бы развернуть]';
+		}
+	
+	}
+	function showRequestInfo(elementid){
+		var container = document.getElementById('container_'+elementid);
+		var buttonPanel = document.getElementById(elementid);
+		if(container.hidden == true){
+			container.hidden = false;
+			buttonPanel.innerHTML = 'Заявка на процесс [Нажмите что-бы свернуть]';
+		} else if (container.hidden == false){
+			container.hidden = true
+			buttonPanel.innerHTML = 'Заявка на процесс [Нажмите что-бы развернуть]';
+		}
+	
+	}
+	function showSourceCode(elementid){
+		var container = document.getElementById('container_'+elementid);
+		var buttonPanel = document.getElementById(elementid);
+		if(container.hidden == true){
+			container.hidden = false;
+			buttonPanel.innerHTML = 'Исходный код [Нажмите что-бы свернуть]';
+		} else if (container.hidden == false){
+			container.hidden = true
+			buttonPanel.innerHTML = 'Исходный код [Нажмите что-бы развернуть]';
+		}
+	
+	}
+</script>
+
+<style>
+.list {
+	border: 1px solid black;
+}
+.list th {
+    background: none repeat scroll 0 0 #666666;
+    color: #FFFFFF;
+    padding: 5px;
+    text-align: left;
+}
+.list td {
+    border-bottom: 1px solid #CCCCCC;
+    padding: 3px 5px;
+    vertical-align: middle;
+}
+.code-preview{
+width:100%;
+resize: none;
+height: 600px;
+background-color: #1f2937;
+color: #e5e7eb;
+border-radius:4px;
+width:100%;
+}
+.commit-comment{
+	background-color:#FFD180;
+	border: 1px solid black;
+	width:98.5%;
+	border-radius:4px;
+	padding:10px;
+}
+.commit-item{
+background-color: #E8E8E8;
+margin-top: 5px;
+margin-bottom: 5px;
+border: 1px solid gray;
+border-radius:4px;
+padding:10px;
+}
+.panelitem{
+background-color: #F7F7F7;
+border: 1px solid gray;
+padding:3px;
+}
+
+</style>
